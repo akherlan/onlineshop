@@ -4,7 +4,10 @@ import { getShopeeProductDetail } from "./shopee_product.js"
 import { Zalora } from "./zalora.js";
 // import * as fs from 'fs';
 
-
+/**
+ * Shopee fashion muslim 
+ * 
+ */
 const getShopeeFlashSaleFashionMuslim = async() => {
   // look into flash sale promotion list
   const promotionData = await ShopeeFlashSale.getPromotion();
@@ -17,14 +20,28 @@ const getShopeeFlashSaleFashionMuslim = async() => {
   console.info("Item count: %s", productList.length);
   return productList;
 }
-
-// var fashionMuslim = await getShopeeFlashSaleFashionMuslim();
-// console.log(fashionMuslim);
+var fashionMuslim = await getShopeeFlashSaleFashionMuslim();
+console.log(fashionMuslim);
 // console.log(await Shopee.getCategory());
 
-// console.log(await Zalora.getProduct());
-
-// Product Detail
-const url = "https://shopee.co.id/GFS-3412-CELANA-KULOT-CRINCLE-PREMIUM-ANTI-KUSUT-2-i.5825746.22420129082?sp_atk=6e0215e0-ea30-4373-9cc6-19c6a799abdb&xptdk=6e0215e0-ea30-4373-9cc6-19c6a799abdb";
-const productDetail = await getShopeeProductDetail(url);
+/**
+ * Product detail
+ * 
+ */
+var url = "https://shopee.co.id/GFS-3412-CELANA-KULOT-CRINCLE-PREMIUM-ANTI-KUSUT-2-i.5825746.22420129082?sp_atk=6e0215e0-ea30-4373-9cc6-19c6a799abdb&xptdk=6e0215e0-ea30-4373-9cc6-19c6a799abdb";
+var productDetail = await getShopeeProductDetail(url);
 console.log(productDetail);
+
+
+/**
+ * Zalora
+ * 
+ */
+var url = "https://www.zalora.co.id/women/pakaian/rok/"
+var data = await Zalora.getProduct(url, 1);
+if (!data.error) {
+  data.forEach((item, i) => { console.log("%s: %s <%s>", i+1, item.name, item.link); });
+  // console.log(data[0]);
+} else {
+  console.log(data);
+};

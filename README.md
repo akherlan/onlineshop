@@ -58,7 +58,7 @@ If you experience a different behavior when using this tool, please comment with
 
 ## Zalora ID
 
-Zalora scraper is provided for comparison with shops' price offering and product availability on Shopee (maybe also with Tokopedia in upcoming time if possible).
+Zalora scraper is provided as an alternative and also a comparison with shops' price offerings and product availability on Shopee (maybe with Tokopedia in the upcoming version if possible).
 
 ## Disclaimer
 
@@ -68,9 +68,11 @@ Please note that Shopee is providing [open API access](https://open.shopee.com/)
 
 ## Support
 
-Suggestions or contributions for this project are welcome. Please open an issue or email me. Even if you only want to keep in touch, please.
+Contributions to this project are welcome. Please open an issue or make a pull request. By submitting a pull request means you agree to [license your contribution](LICENSE.txt) under the MIT license to this project.
 
-If you feel the project is helpful you can also support me as a sponsor or buy me a coffee (traktir kopi pakai Gopay/OVO/QRIS lewat traktir.id). I can be excited and do more work for future improvement.
+You can also email me for suggestions.
+
+If you feel the project is helpful and want me to improve the project, you can also support me as a sponsor or buy me a coffee (traktir kopi pakai Gopay/OVO/QRIS lewat traktir.id). I can be excited and do more work for future improvement.
 
 I am also available for hire!
 

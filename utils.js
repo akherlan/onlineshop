@@ -1,4 +1,4 @@
-// Ref: https://stackoverflow.com/questions/74640623/why-am-i-facing-referenceerror-urlsearchparams-is-not-defined
+// Ref: https://stackoverflow.com/a/74642018/10639901
 String.prototype.addQuery = function (obj) {
   return this + Object.keys(obj).reduce(function (p, e, i) {
     return p + (i == 0 ? "?" : "&") +
@@ -7,3 +7,12 @@ String.prototype.addQuery = function (obj) {
       }, "") : e + "=" + encodeURIComponent(obj[e]));
   }, "");
 }
+
+// Ref: https://stackoverflow.com/a/5574446/10639901
+String.prototype.toTitleCase = function () {
+  return this.replace(
+    /\w\S*/g, function(txt) {
+      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    }
+  );
+};
