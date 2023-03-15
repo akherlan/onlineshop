@@ -2,6 +2,8 @@
 
 ## Shopee ID
 
+The original idea of the scraper was coming from Racun Shopee.
+
 **Racun Shopee** ("Shopee Poison") is a micro influencing and affiliate marketing campaign in Indonesia especially for fashion and beauty products. Usually attract people with showing off OOTD (outfit of the day) looks or make-up preparation and review, then spill and recommend related worth-to-buy products to influence the audiences to purchase on social media.
 
 This repository is contain codes related to micro and lightweight data collecting through Shopee's public API v4 in idea to achieve automation effort as part of my personal affiliate marketing activity.
@@ -116,8 +118,8 @@ Contributions to this project are welcome. Please open an issue or make a pull r
 
 You can also email me for suggestions.
 
-If you feel the project is helpful and want me to improve the project, you can also support me as a sponsor or buy me a coffee (traktir kopi pakai Gopay/OVO/QRIS lewat traktir.id). I can be excited and do more work for future improvement.
+If you feel the project is helpful and want me to improve the project, you can also support me as a sponsor or [buy me a coffee](https://ko-fi.com/andiherlan) (traktir kopi bisa juga pakai **QRIS**/**Gopay**/**OVO**/**Dana**/transfer bank dll. lewat [traktir.id](https://saweria.co/andiherlan)). I can be excited and do more work for future improvement.
 
 I am also available for hire!
 
-Contact: **getdata**[at]**duck**[dot]**com**
+Email: **getdata** [at] **duck.com**
