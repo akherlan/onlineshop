@@ -2,11 +2,55 @@
 
 ## Shopee ID
 
-**Racun Shopee** ("Shopee Poison" in Bahasa Indonesia) is a micro influencing and affiliate marketing campaign in Indonesia especially for fashion and beauty products. Usually attract people with showing off OOTD (outfit of the day) looks or make-up preparation and review, then spill and recommend related worth-to-buy products to influence the audiences to purchase on social media.
+**Racun Shopee** ("Shopee Poison") is a micro influencing and affiliate marketing campaign in Indonesia especially for fashion and beauty products. Usually attract people with showing off OOTD (outfit of the day) looks or make-up preparation and review, then spill and recommend related worth-to-buy products to influence the audiences to purchase on social media.
 
 This repository is contain codes related to micro and lightweight data collecting through Shopee's public API v4 in idea to achieve automation effort as part of my personal affiliate marketing activity.
 
 Another sale data retrieval tool is written on Google Apps Script and available on Google Sheets as a sticking additional menu (hope can be an add-ons in the future). It can be helpful to supply data for manual spreadsheet analytic purposes.
+
+## Usage
+
+Clone this repository and direct to the project working directory.
+
+The project is using Axios module in Node.js. To running the code you need to install Node.js on your local machine and install required dependencies from `package.json` using npm (Node.js package manager):
+
+```bash
+npm install
+```
+
+Accessing `flash_catid` (flash sale category id) which useful for filtering flash sale products by their category.
+
+```js
+import { get_flash_catid } from './shopee.js';
+
+var catids = await get_flash_catid().then(({ data }) => { return data });
+console.log(catids);
+```
+
+You will use the category id on the following function:
+
+```js
+import { get_flashsale } from './shopee.js';
+
+var products = await get_flashsale(41); // computers and accessories
+products.forEach((item, i) => { console.log('%s: %s', i+1, item.name); });
+```
+
+When product URL is ready, accessing to the product detail is as follows:
+
+```js
+import { get_shopee_product_detail } from './shopee.js'
+
+var url = 'https://shopee.co.id/product/5696604/15949131744';
+var product_detail = await get_shopee_product_detail(url);
+console.log(product_detail);
+```
+
+You can also using product URL from the browser url bar like:
+
+```
+https://shopee.co.id/Audio-Technica-ATH-M20xBT-Wireless-Over-Ear-Headphones-i.5696604.15949131744
+```
 
 ### Caution
 
@@ -68,7 +112,7 @@ Please note that Shopee is providing [open API access](https://open.shopee.com/)
 
 ## Support
 
-Contributions to this project are welcome. Please open an issue or make a pull request. By submitting a pull request means you agree to [license your contribution](LICENSE.txt) under the MIT license to this project.
+Contributions to this project are welcome. Please open an issue or make a pull request. By submitting a pull request means you agree to [license your contribution](LICENSE) under the MIT license to this project.
 
 You can also email me for suggestions.
 
