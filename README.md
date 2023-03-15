@@ -118,7 +118,7 @@ Contributions to this project are welcome. Please open an issue or make a pull r
 
 You can also email me for suggestions.
 
-If you feel the project is helpful and want me to improve the project, you can also support me as a sponsor or [buy me a coffee](https://ko-fi.com/andiherlan) (traktir kopi bisa juga pakai **QRIS**/**Gopay**/**OVO**/**Dana**/transfer bank dll. lewat [traktir.id](https://saweria.co/andiherlan)). I can be excited and do more work for future improvement.
+If you feel the project is helpful and want me to improve the project, you can also support me as a sponsor or [buy me a coffee](https://ko-fi.com/andiherlan) (traktir kopi bisa juga pakai **QRIS**/**Gopay**/**OVO**/**Dana**/transfer bank dll. lewat [saweria.co](https://saweria.co/andiherlan)). I can be excited and do more work for future improvement.
 
 I am also available for hire!
 
