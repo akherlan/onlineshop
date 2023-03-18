@@ -54,6 +54,24 @@ You can also using product URL from the browser url bar like:
 https://shopee.co.id/Audio-Technica-ATH-M20xBT-Wireless-Over-Ear-Headphones-i.5696604.15949131744
 ```
 
+To get list of available products from shop:
+
+```js
+import { get_shopee_shop_product } from './shopee.js'
+
+var response = get_shopee_shop_product('xiaomi.official.id'); // 51925611
+response.then((data) => {
+  data.forEach((item, index) => { console.log('%s: %s', index+1, item.name); });
+});
+``` 
+
+It can also use shopid instead of username as an argument, e.g. `51925611`.
+
+Get shop argument from url:
+
+- `https://shopee.co.id/shop/51925611`
+- `https://shopee.co.id/xiaomi.official.id`
+
 ### Caution
 
 Often, the stocks of each tier variation (color, size, type, etc.) do not match at all with the display on the web page. But 0 stock (out of stock) always remains the same. The sold item countings also are not accurate or maybe it has a multiplier factor, etc. Don't know what is it. After all, we may only need information as to whether the item is in stock or out of stock.
