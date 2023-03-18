@@ -14,7 +14,7 @@ Another sale data retrieval tool is written on Google Apps Script and available 
 
 Clone this repository and direct to the project working directory.
 
-The project is using Axios module in Node.js. To running the code you need to install Node.js on your local machine and install required dependencies from `package.json` using npm (Node.js package manager):
+The project is using Axios module in Node.js. For running the code you need to install Node.js on your local machine and install required dependencies from `package.json` using npm (Node.js package manager):
 
 ```bash
 npm install
@@ -64,16 +64,14 @@ Often, the stocks of each tier variation (color, size, type, etc.) do not match 
 
   in_stock: data.stock != null ? Boolean(data.stock) : data.stock,
   models: (() => {
-    let variations = [];
-    data.models.forEach((item) => {
-      variations.push({
+    return data.models.map((item) => {
+      return {
         // ...
         in_stock: item.stock != null ? Boolean(item.stock) : item.stock,
         // ...
-      });
+      };
     });
-    return variations;
-  }
+  })()
 
   // ...
 }
