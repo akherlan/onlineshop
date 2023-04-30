@@ -32,10 +32,10 @@ console.log(catids);
 You will use the category id on the following function:
 
 ```js
-import { get_flashsale } from './shopee.js';
+import { get_shopee_flashsale } from './shopee.js';
 
-var products = await get_flashsale(41); // computers and accessories
-products.forEach((item, i) => { console.log('%s: %s', i+1, item.name); });
+var products = await get_shopee_flashsale(41); // computers and accessories
+products.forEach((item, index) => { console.log('%s: %s', index+1, item.name); });
 ```
 
 When product URL is ready, accessing to the product detail is as follows:
@@ -72,9 +72,29 @@ Get shop argument from url:
 - `https://shopee.co.id/shop/51925611`
 - `https://shopee.co.id/xiaomi.official.id`
 
+If you need product list from certain category, you can get the list using its url as follows:
+
+```js
+import { get_shopee_category_product } from './shopee.js'
+
+var url = 'https://shopee.co.id/Komputer-Aksesoris-cat.11044364';
+var response = get_shopee_category_product(url);
+response.then((data) => {
+  data.forEach((item, index) => { console.log('%s: %s', index+1, item.name); });
+});
+```
+
+Allowed format for category url is when they contain 8 digits of number, e.g. `___cat.xxxxxxxx` or `___cat.xxxxxxxx.xxxxxxxx` (`xxxxxxxx` is a numeric indicate the category id).
+
+Example allowed url format:
+
+- `https://shopee.co.id/Tas-Wanita-cat.11042642`
+- `https://shopee.co.id/Tas-Selempang-Bahu-Wanita-cat.11042642.11042656`
+- `https://shopee.co.id/Kacamata-Aksesoris-cat.11042921.11042952`
+
 ### Caution
 
-Often, the stocks of each tier variation (color, size, type, etc.) do not match at all with the display on the web page. But 0 stock (out of stock) always remains the same. The sold item countings also are not accurate or maybe it has a multiplier factor, etc. Don't know what is it. After all, we may only need information as to whether the item is in stock or out of stock.
+Often, the stocks of each tier variation (color, size, type, etc.) returned from product page do not match at all with the display on the web page. But 0 stock (out of stock) always remains the same. The sold item countings also are not accurate or maybe it has a multiplier factor, etc. Don't know what is it. After all, we may only need information as to whether the item is in stock or out of stock.
 
 ```js
 {
@@ -116,6 +136,8 @@ The average rating is also often not the same as rating star on the product page
 
 The price nominal from the product detail collector sucks like a random number. They will change if you access from a different IP/country (I tested using VPN). Please only use pricing detail from the sale retriever, or create a webpage scraper instead. For this reason, I am not including pricing data returned from product item request.
 
+After all, the stock, price, and rating of products are good if they retrieve from flashsale and shop product lists.
+
 If you experience a different behavior when using this tool, please comment with opening an issue.
 
 ## Zalora ID
@@ -124,7 +146,7 @@ Zalora scraper is provided as an alternative and also a comparison with shops' p
 
 ## Disclaimer
 
-Be wise and polite (to the website) to use this simple application.
+Be wise and polite (to the website) to use this simple application. The author is not responsible if your IP address is blocked by the data owner/provider as a result of using an application that burdens their server.
 
 Please note that Shopee is providing [open API access](https://open.shopee.com/) for massive data load and serious developer to integrate your own application directly. I think it will provide you with more proper and accurate data too.
 

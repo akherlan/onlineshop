@@ -2,15 +2,15 @@ import axios from 'axios';
 import * as utils from './utils.js';
 
 const DEFAULT_USER_AGENT = 'Best Deals for Affiliate';
-const PRETEND_TO_BE_A_BROWSER = 'Mozilla/5.0 (X11; Linux x86_64) '
+const BROWSER_USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) '
   + 'AppleWebKit/537.36 (KHTML, like Gecko) '
   + 'Chrome/110.0.0.0 Safari/537.36';
 
 const IMAGE_PATH = 'https://cf.shopee.co.id/file/';
 
-const endpoint = 'https://shopee.co.id/api/v4/flash_sale';
+const FLASH_ENDPOINT = 'https://shopee.co.id/api/v4/flash_sale/';
 
-const instance = axios.create({
+const DEFAULT_INSTANCE = axios.create({
   baseURL: 'https://shopee.co.id/api/v4',
   timeout: 10000,
   headers: {
@@ -19,9 +19,32 @@ const instance = axios.create({
   },
 });
 
+async function init_cookie(path) {
+  const dummy_request_url = 'https://shopee.co.id/api/v4/pages/is_short_url/';
+  const axiosInstance = axios.create({
+    timeout: 5000,
+    headers: {
+      'user-agent': BROWSER_USER_AGENT,
+      'content-type': 'application/json'
+    },
+  });
+  axiosInstance.defaults.headers['cookie'] = await axiosInstance
+    .get(dummy_request_url, { params: { path: path } })
+    .then((response) => {
+      return response.headers['set-cookie'].map((cookie) => {
+        return cookie.split(';')[0];
+      }).join('; ');
+    })
+    .catch((error) => {
+      console.error('err: %s (ref dummy request)', error.message);
+      return null;
+    });
+  return axiosInstance;
+}
+
 async function get_promotion() {
-  const url = endpoint + '/get_all_sessions';
-  return await instance.get(url, { 
+  const url = FLASH_ENDPOINT + 'get_all_sessions';
+  return await DEFAULT_INSTANCE.get(url, { 
       params: {
         category_personalization_type: 0
       }
@@ -32,7 +55,7 @@ async function get_promotion() {
         return {
           promotionid: session_item.promotionid,
           name: session_item.name,
-          url: `${endpoint}/get_all_itemids`.addQuery({
+          url: `${FLASH_ENDPOINT}get_all_itemids`.addQuery({
             need_personalize: true,
             order_mode: 2,
             promotionid: session_item.promotionid,
@@ -48,7 +71,7 @@ async function get_promotion() {
 }
 
 async function get_product_id(promotion_url, flash_catid) {
-  return await instance.get(promotion_url)
+  return await DEFAULT_INSTANCE.get(promotion_url)
     .then(async({ data }) => {
       let items = [];
       for (let item of await data.data.item_brief_list) {
@@ -68,6 +91,7 @@ async function get_product(promotionid, itemids) {
   var itemCount = 0;
   var batchCount = Math.ceil(itemids.length / limit);
   let result = [];
+  console.log('Get flashsale...');
   for (let batch = 0; batch < batchCount; batch++) {
     var start = batch * limit;
     var end = limit + itemCount;
@@ -79,15 +103,15 @@ async function get_product(promotionid, itemids) {
       with_dp_items: true
     };
     var items = await (async function() {
-      var url = endpoint + '/flash_sale_batch_get_items';
-      return await instance.post(url, options)
+      var url = FLASH_ENDPOINT + 'flash_sale_batch_get_items';
+      return await DEFAULT_INSTANCE.post(url, options)
         .then(({ data }) => {
           // console.log('Get flashsale page %s', batch + 1);
           return { 'error': false, 'data': data.data.items };
         })
         .catch((error) => {
           // console.info('Error in page %s: %s', batch + 1, error.message);
-          return { 'error': true, 'message': error.message };
+          return { 'error': true, 'message': `${error.message} (ref ${url})` };
         });
     })();
     if (!items.error) {
@@ -99,8 +123,8 @@ async function get_product(promotionid, itemids) {
 }
 
 export async function get_flash_catid() {
-  const url = endpoint + '/get_all_sessions';
-  return await instance.get(url, {
+  const url = FLASH_ENDPOINT + 'get_all_sessions';
+  return await DEFAULT_INSTANCE.get(url, {
       param: {
         category_personalization_type: 0
       }
@@ -116,11 +140,11 @@ export async function get_flash_catid() {
       return { 'error': false, 'data': categories };
     })
     .catch((error) => {
-      return { 'error': true, 'message': error.message };
+      return { 'error': true, 'message': `${error.message} (ref ${url})` };
     })
 }
 
-export async function get_flashsale(flash_catid) {
+export async function get_shopee_flashsale(flash_catid) {
   const parse = (item) => {
     return {
       shopid: item.shopid,
@@ -164,19 +188,20 @@ export async function get_flashsale(flash_catid) {
   };
 }
 
-async function get_category_tree() {
-  var url = endpoint + '/pages/get_category_tree';
-  var response = await instance.get(url)
+export async function get_category_tree() {
+  var url = 'https://shopee.co.id/api/v4/pages/get_category_tree';
+  const axiosInstance = await init_cookie('flash_sale');
+  var response = await axiosInstance.get(url)
     .then((response) => {
-      console.log('Get category tree');
-      return { 'error': false, 'data': response.data };
+      console.log('Get category tree...');
+      return { 'error': false, 'data': response.data.data.category_list };
     })
     .catch((error) => {
-      return { 'error': true, 'message': error.message };
+      return { 'error': true, 'message': `${error.message} (ref ${url})` };
     });
   const reshape = async(response) => {
-    var catlist = await response.data.category_list;
-    const parse = async(elem) => {
+    var catlist = await response.data;
+    const parse = (elem) => {
       return {
         catid: elem.catid,
         name: elem.name,
@@ -189,12 +214,11 @@ async function get_category_tree() {
     for (let elem of catlist) {
       var item = await parse(elem);
       if (item.children.length > 0) {
-        item.children = item.children.map(async(elem) => {
-          return await parse(elem);
+        item.children = await item.children.map((elem) => {
+          return parse(elem);
         });
       };
-      item.children = await newchildren;
-      data.push(item);
+      data.push(await item);
     };
     return data;
   };
@@ -205,7 +229,7 @@ async function get_category_tree() {
   };
 }
 
-function parse_shopee_url(url) {
+function parse_shopee_product_url(url) {
   var re1 = /i(\.\d+){2}\/?$/;
   var re2 = /product(\/\d+){2}\/?$/;
   var url = url.split('?')[0];
@@ -221,16 +245,32 @@ function parse_shopee_url(url) {
   return [ shopid, itemid ];
 }
 
-async function get_product_detail(instance, product_url) {
-  const [ shopid, itemid ] = parse_shopee_url(product_url);
+function parse_shopee_category_url(url) {
+  var re1 = /cat(\.\d+){1,}$/;
+  if (re1.test(url)) {
+    var text = url.match(re1)[0].split('.');
+  }
+  var catids = text.filter((item) => {
+    return item.match(/^\d+$/g)
+  });
+  return catids
+}
+
+async function get_product_detail(product_url) {
+  const [ shopid, itemid ] = parse_shopee_product_url(product_url);
   const url = 'https://shopee.co.id/api/v4/item/get';
-  const params = {
-    itemid: itemid,
-    shopid: shopid
-  };
-  instance.defaults.headers['user-agent'] = PRETEND_TO_BE_A_BROWSER;
-  instance.defaults.headers['af-ac-enc-dat'] = null;
-  return await instance.get(url, { params: params })
+  return await axios.get(url,
+    {
+      params: {
+        itemid: itemid,
+        shopid: shopid
+      },
+      headers: {
+        'content-type': 'application/json',
+        'user-agent': BROWSER_USER_AGENT,
+        'af-ac-enc-dat': null
+      }
+    })
     .then(async(response) => { return await response.data; })
     .catch((error) => { return { 'error': true, 'message': error.message }; });
 }
@@ -316,12 +356,16 @@ function parse_product_detail(data) {
         return IMAGE_PATH + img;
       });
     })(),
-    has_video: Boolean(data.video_info_list.length),
+    has_video: data.video_info_list != null
+      ? Boolean(data.video_info_list.length)
+      : false,
     videos: (() => {
-      if (data.video_info_list.length) {
-        return data.video_info_list.map((item) => {
-          return item.default_format;
-        });
+      if (data.video_info_list != null) {
+        if (data.video_info_list.length) {
+          return data.video_info_list.map((item) => {
+            return item.default_format;
+          })
+        };
       }
       else {
         return [];
@@ -334,7 +378,7 @@ function parse_product_detail(data) {
 
 export async function get_shopee_product_detail(url) {
   console.log('GET %s', url);
-  const response = await get_product_detail(instance, url);
+  const response = await get_product_detail(url);
   if (response.error == null) {
     return parse_product_detail(response.data);
   } else {
@@ -344,35 +388,16 @@ export async function get_shopee_product_detail(url) {
 
 async function get_shopid(username) {
   const url = 'https://shopee.co.id/api/v4/shop/get_shop_base';
-  const dummy_request_url = 'https://shopee.co.id/api/v4/pages/is_short_url/';
-  instance.defaults.headers['user-agent'] = PRETEND_TO_BE_A_BROWSER;
-  instance.defaults.headers['cookie'] = await instance
-    .get(dummy_request_url, { params: { path: username } })
-    .then((response) => {
-      return response.headers['set-cookie'].map((cookie) => {
-        return cookie.split(';')[0];
-      }).join('; ');
+  const axiosInstance = await init_cookie(username);
+  const data = await axiosInstance.get(url, {
+      params: { username: username }
     })
+    .then(({ data }) => { return data.data.shopid; })
     .catch((error) => {
-      console.error({
-        'error': true, 'message': `${error.message} (ref: dummy request)`
-      });
+      console.error('err: %s (ref %s)', error.message, url);
       return null;
     });
-  var data = await instance.get(url, {
-      params: {
-        username: username
-      }
-    })
-    .then(({ data }) => { return data; })
-    .catch((error) => {
-      console.error({
-        'error': true, 'message': `${error.message} (ref: ${url})`
-      });
-      return null;
-    });
-  instance.defaults.headers['user-agent'] = DEFAULT_USER_AGENT;
-  return data.data.shopid;
+  return data;
 }
 
 /*
@@ -424,15 +449,10 @@ export async function get_shopee_shop_product(shop, catalog_id) {
       url: `https://shopee.co.id/product/${item.shopid}/${item.itemid}`,
     }
   };
-  if (Number(shop)) {
-    var shop_id = shop;
-  } else {
-    var shop_id = await get_shopid(shop);
-  };
-  // console.log(shop_id);
+  var shop_id = Number(shop) ? shop : await get_shopid(shop);
   var domain = 'https://shopee.co.id/api/v4/recommend/recommend';
   var offset = 0;
-  var limit = 150; // default web 30
+  var limit = 120; // default web 30
   var has_more = true;
   let products = [];
   let shop_name;
@@ -449,22 +469,22 @@ export async function get_shopee_shop_product(shop, catalog_id) {
       tab_name: 'popular',
       upstream: ''
     };
-    var data = await instance.get(domain, { params: params })
+    var data = await DEFAULT_INSTANCE.get(domain, { params: params })
       .then(({ data }) => {
-        return { 'error': false, 'data': data.data.sections[0].data };
+        return { 'error': false, 'data': data.data.sections[0] };
       })
       .catch((error) => {
         return { 'error': true, 'message': `${error.message} (ref: ${domain})` }
       });
     if (!data.error) {
-      offset += data.data.item.length;
-      has_more = data.has_more;
+      offset += data.data.data.item.length;
+      has_more = data.data.has_more;
       if (shop_name === undefined) {
-        shop_name = data.data.item[0].shop_name;
+        shop_name = data.data.data.item[0].shop_name;
         console.log('Get products from %s', shop_name);
       };
       products = products.concat(
-        data.data.item.map((item) => {
+        data.data.data.item.map((item) => {
           return parse(item);
         })
       );
@@ -473,7 +493,105 @@ export async function get_shopee_shop_product(shop, catalog_id) {
       products = data;
     };
   };
-  // console.log(instance.defaults.headers);
   if (products.length) console.log('Items count: %s', products.length);
   return products;
+}
+
+export async function get_shopee_category_product(url, keyword) {
+  console.log('GET %s\nKeyword: %s', url, keyword);
+  const catids = await parse_shopee_category_url(url);
+  const cat_level = catids.length;
+  const cat_id = catids[cat_level - 1];
+  const parse = (item) => {
+    return {
+      shopid: item.shopid,
+      itemid: item.itemid,
+      name: item.name,
+      price: item.price/100000,
+      price_before_discount: item.price_before_discount/100000,
+      currency: item.currency,
+      saving_percentage: item.raw_discount,
+      item_rating: item.item_rating,
+      // categories: item.cats,
+      categories: item.catid,
+      stock: item.stock,
+      image: IMAGE_PATH + item.image,
+      images: item.images.map((image) => {
+        return IMAGE_PATH + image
+      }),
+      url: `https://shopee.co.id/product/${item.shopid}/${item.itemid}`,
+      is_flashsale: item.is_on_flash_sale,
+      flashsale: item.is_on_flash_sale 
+        ? {
+          promotionid: item.promotionid ? item.promotionid : null,
+          flash_catid: item.flash_catid ? item.flash_catid : null,
+          flash_start_time: item.start_time ? item.start_time : null,
+          flash_end_time: item.end_time ? item.end_time : null,
+          flash_stock: item.flash_sale_stock ? item.flash_sale_stock : null,
+        }
+        : null,
+      is_shopee_mall: item.is_official_shop ? item.is_official_shop : null,
+      is_shopee_food: item.is_shopee_food ? item.is_shopee_food : null,
+      is_shopee_mart: item.is_mart ? item.is_mart : null,
+    };
+  };
+  var domain = 'https://shopee.co.id/api/v4/recommend/recommend';
+  var offset = 0;
+  var limit = 120; // default web 60
+  var has_more = true;
+  let products = [];
+  while (has_more) {
+    var params = {
+      bundle: 'category_landing_page',
+      cat_level: cat_level != null ? cat_level : '',
+      catid: cat_id != null ? cat_id : '',
+      limit: limit,
+      offset: offset
+    };
+    var data = await DEFAULT_INSTANCE.get(domain, { params: params })
+      .then(({ data }) => {
+        return { 'error': false, 'data': data.data.sections[0] };
+      })
+      .catch((error) => {
+        return { 'error': true, 'message': `${error.message} (ref: ${domain})` }
+      });
+    if (!data.error) {
+      offset += data.data.data.item.length;
+      has_more = data.data.has_more;
+      products = products.concat(
+        data.data.data.item.map((item) => {
+          return parse(item);
+        })
+      );
+    } else {
+      has_more = false;
+      products = data;
+    };
+  };
+  let results = []
+  if (Boolean(products.length) & keyword != null) {
+    if (typeof keyword == 'object' | typeof keyword == 'string' & keyword.length > 0) {
+      for (let item of products) {
+        var product_name = item.name.toLowerCase();
+        if (typeof keyword == 'object') {
+          if (keyword.filter((key) => {
+            return product_name.search(key.toLowerCase()) != -1
+          }).length) {
+            results.push(item)
+          };
+        }
+        if (typeof keyword == 'string') {
+          if (product_name.search(keyword.toLowerCase()) != -1) {
+            results.push(item)
+          }
+        }
+      };
+    } else {
+      results = results.concat(products);
+    };
+  } else {
+    results = results.concat(products);
+  }
+  console.log('Items count: %s', results.length);
+  return results
 }
